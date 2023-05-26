@@ -32,8 +32,6 @@ export class Tokenizer implements TokenizerBase {
 
         const string = this.#string.slice(this.#cursor);
 
-        //console.log(string, 'string!!', 'cursor -', this.#cursor);
-
         /** Number */
         if (!Number.isNaN(string[0])) {
             let token = '';
@@ -41,10 +39,9 @@ export class Tokenizer implements TokenizerBase {
             console.log(Number.isNaN(string[this.#cursor]), 'string[this.#cursor]');
 
             // Looks like infinite loop here.
-            while (!Number.isNaN(string[this.#cursor])) {
-                //console.log(this.#cursor);
-                token += string[this.#cursor++];
-                //this.#cursor++;
+            while (!Number.isNaN(string[this.#cursor]) && this.hasMoreTokens()) {
+                token += string[this.#cursor];
+                this.#cursor++;
             }
 
             return {
