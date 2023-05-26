@@ -1,4 +1,4 @@
-import { AST, Nullable, NumericLiteral, Token } from './shared/types';
+import { AST, Nullable, NumericLiteral, StringLiteral, Token } from './shared/types';
 import { Tokenizer } from './tokenizer';
 
 export interface ParserProgram {
@@ -14,19 +14,39 @@ export class Parser implements ParserProgram {
         this.#tokenizer = new Tokenizer();
     }
 
+    private StringLiteral(): StringLiteral {
+        const token = this.eat('STRING');
+
+        return {
+            type: 'StringLiteral',
+            value: token.value.toString().slice(1, -1),
+        };
+    }
+
     private NumericLiteral(): NumericLiteral {
         const token = this.eat('NUMBER');
 
         return {
             type: 'NumericLiteral',
-            value: token.value,
+            value: Number(token.value),
         };
+    }
+
+    private Literal() {
+        switch (this.#lookAhead?.type) {
+            case 'NUMBER':
+                return this.NumericLiteral();
+            case 'STRING':
+                return this.StringLiteral();
+            default:
+                throw new Error('Unsupported token type.');
+        }
     }
 
     private Program() {
         return {
             type: 'Program',
-            body: this.NumericLiteral(),
+            body: this.Literal(),
         } as const;
     }
 
