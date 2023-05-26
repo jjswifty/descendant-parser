@@ -1,15 +1,20 @@
 export type Nullable<T> = null | T;
 
-type BasicLiteral<T> = {
-    type: string;
-    value: T;
+export type NumericLiteral = {
+    type: 'NumericLiteral';
+    value: number;
 };
 
-export type NumericLiteral = BasicLiteral<number>;
+export type StringLiteral = {
+    type: 'StringLiteral';
+    value: string;
+};
+
+export type Literal = NumericLiteral | StringLiteral;
 
 export interface AST {
     type: 'Program';
-    body: NumericLiteral;
+    body: Literal;
 }
 
 type NumberToken = {
@@ -17,4 +22,9 @@ type NumberToken = {
     value: number;
 };
 
-export type Token = NumberToken;
+type StringToken = {
+    type: 'STRING';
+    value: string;
+};
+
+export type Token = NumberToken | StringToken;
