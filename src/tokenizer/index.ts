@@ -1,9 +1,13 @@
 import { Nullable, Token } from '../shared/types';
+import { Specification } from './specification';
 
 interface TokenizerBase {
     getNextToken(): Nullable<Token>;
 }
 
+/**
+ * Lazily pulls a token from a stream.
+ */
 export class Tokenizer implements TokenizerBase {
     #string = '';
     #cursor = 0;
@@ -24,6 +28,17 @@ export class Tokenizer implements TokenizerBase {
         return this.#cursor === this.#string.length;
     }
 
+    private match(regExp: RegExp, string: string) {
+        const matched = regExp.exec(string);
+
+        if (!matched) {
+            return null;
+        }
+
+        this.#cursor += matched[0].length;
+
+        return matched[0];
+    }
     /**
      * Initializes the string.
      */
@@ -34,44 +49,33 @@ export class Tokenizer implements TokenizerBase {
     /**
      * Obtains next token
      */
-    public getNextToken() {
-        if (!this.hasMoreTokens()) {
+    public getNextToken(): Nullable<Token> {
+        if (!this.hasMoreTokens() || this.isEOF()) {
             return null;
         }
 
         const string = this.#string.slice(this.#cursor);
 
-        /** Number */
-        if (!Number.isNaN(Number(string[0]))) {
-            let token = '';
+        for (const [regExp, tokenType] of Specification) {
+            const tokenValue = this.match(regExp, string);
 
-            while (!Number.isNaN(string[this.#cursor]) && !this.isEOF()) {
-                token += string[this.#cursor];
-                this.#cursor++;
+            if (!tokenValue) {
+                continue;
+            }
+
+            /**
+             * Ignore whitespaces
+             */
+            if (tokenType === null) {
+                return this.getNextToken();
             }
 
             return {
-                type: 'NUMBER',
-                value: Number(token),
-            } as const;
+                type: tokenType,
+                value: tokenValue,
+            };
         }
 
-        /** String */
-        if (string[0] === '"') {
-            let token = '';
-            // Collect string including quotes ("hello")
-            do {
-                token += string[this.#cursor++];
-            } while (string[this.#cursor] !== '"' && !this.isEOF());
-
-            token += string[this.#cursor++]; // also collect '"' symbol.
-
-            return {
-                type: 'STRING',
-                value: token,
-            } as const;
-        }
-
-        return null;
+        throw new Error(`Unexpected token: ${string[0]}`);
     }
 }
