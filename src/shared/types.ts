@@ -19,7 +19,7 @@ export interface AST {
 
 type NumberToken = {
     type: 'NUMBER';
-    value: number;
+    value: string;
 };
 
 type StringToken = {
@@ -28,3 +28,4 @@ type StringToken = {
 };
 
 export type Token = NumberToken | StringToken;
+export type TokenType = Token['type'];
