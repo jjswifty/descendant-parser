@@ -73,6 +73,51 @@ describe('Parser', () => {
                 });
             });
         });
+
+        describe('comments', () => {
+            it('should ignore one-line comments', () => {
+                const parser = new Parser();
+
+                const program = `
+                    // one line comment
+                    "hi"
+                    // one line comment
+                `;
+
+                const ast = parser.parse(program);
+
+                expect(ast).toStrictEqual({
+                    type: 'Program',
+                    body: {
+                        type: 'StringLiteral',
+                        value: 'hi',
+                    },
+                });
+            });
+
+            it('should ignore multi-line comments', () => {
+                const parser = new Parser();
+
+                const program = `
+                    /**
+                     * "hi" 4
+                     // hello "hi" 222 // 1 /* test
+                     // 123 
+                     */
+                     "hi"
+                `;
+
+                const ast = parser.parse(program);
+
+                expect(ast).toStrictEqual({
+                    type: 'Program',
+                    body: {
+                        type: 'StringLiteral',
+                        value: 'hi',
+                    },
+                });
+            });
+        });
     });
 
     describe('Errors', () => {
